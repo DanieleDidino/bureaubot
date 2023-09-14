@@ -53,8 +53,7 @@ query_engine_default = default_engine(folder_with_index, qa_template, number_top
 
 # streamlit config
 st.set_page_config(
-    page_title="Office Hog",
-    # page_icon=
+    page_title="Bureau Bot",
     layout="wide",
     page_icon=".streamlit/favicon.ico",
     menu_items={
@@ -100,14 +99,15 @@ sidebar = st.sidebar
 with sidebar:
 
     # Custom page title and subtitle
-    st.title("Office Hog")
+    st.title("Bureau Bot ")
     st.subheader("Ate the official documents", divider="orange")
     st.markdown("<br>", unsafe_allow_html=True)
     st.markdown("<br>", unsafe_allow_html=True)
     st.markdown("<br>", unsafe_allow_html=True)
 
     # Get OpenAI ley from user
-    OPENAI_KEY = st.text_input(label="OpenAI Key:", type="password", help="Enter your OpenAi key")
+    openai_label = "Enter your [OpenAi key](https://platform.openai.com/account/api-keys)"
+    OPENAI_KEY = st.text_input(label=openai_label, type="password", help="Enter your OpenAi key")
     # openai.api_key = OPENAI_KEY # TODO: Uncomment this lines when we will ask for the user OpenAI Key
     
     # This toggle define whether we use the default query engine (based on our documents) or
@@ -119,27 +119,8 @@ with sidebar:
     # Expander for file uploading
     with st.expander("Choose a file from your hard drive"):
         uploaded_file = st.file_uploader("", type=["docx", "doc", "pdf"], accept_multiple_files=True)
-
-        # TODO: does this code do something else than showing a bar? I think that the progress bar is not related to the upload process
-        # # Initialize the flag
-        # show_progress = False
-        # # Update "show_progress" if any files were uploaded
-        # if uploaded_file:
-        #     for file in uploaded_file:
-        #         if len(file.getvalue()) > 0:
-        #             show_progress = True
-        #             break
-        # # Show progress bar only if the "show_progress" is set to True
-        # if show_progress:
-        #     # Show progress bar
-        #     progress_bar = st.progress(0)
-        #     progress_text = st.empty()
-        #     for perc_completed in range(100):
-        #         #time.sleep(1)
-        #         progress_bar.progress(perc_completed + 1)
-        #     # Update progress bar and text
-        #     progress_bar.progress(100)
-        #     st.text("File saved successfully!")
+        if uploaded_file:
+            st.text("File saved successfully!")
         st.text("File saved successfully!")
     
     # Add space between elements of the column
