@@ -5,7 +5,7 @@ from llama_index import SimpleDirectoryReader
 from llama_index import LLMPredictor, ServiceContext
 from llama_index import VectorStoreIndex
 from llama_index.evaluation import ResponseEvaluator
-from llama_index.indices.postprocessor import FixedRecencyPostprocessor
+# from llama_index.indices.postprocessor import FixedRecencyPostprocessor
 # from llama_index.llms import OpenAI
 # from langchain.chat_models import ChatOpenAI
 import os
