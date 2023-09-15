@@ -1,24 +1,26 @@
 from llama_index import StorageContext, load_index_from_storage
-from llama_index import Prompt
-from llama_index import PromptHelper
+# from llama_index import Prompt
+# from llama_index import PromptHelper
 from llama_index import SimpleDirectoryReader
 from llama_index import LLMPredictor, ServiceContext
 from llama_index import VectorStoreIndex
 from llama_index.evaluation import ResponseEvaluator
-from llama_index.llms import OpenAI
-from langchain.chat_models import ChatOpenAI
+from llama_index.indices.postprocessor import FixedRecencyPostprocessor
+# from llama_index.llms import OpenAI
+# from langchain.chat_models import ChatOpenAI
 import os
 import streamlit as st
 
 
-def default_engine(folder_with_index, qa_template, number_top_results):
+def default_engine(folder_with_index, qa_template, number_top_results, selected_llm):
     """
     Rebuild storage context from a vector database and return a query engine.
 
     Args:
         folder_with_index (str): Folder where the vector database is.
         qa_template (f-string): A prompt used to create the query engine.
-        number_top_results (int): Number of top results to return
+        number_top_results (int): Number of top results to return.
+        selected_llm: Large language model used to generate query engine.
 
     Returns:
         query_engine: a query_engine created from the index.
@@ -31,20 +33,22 @@ def default_engine(folder_with_index, qa_template, number_top_results):
     return query_engine
 
 
-def query_engine_from_upload(folder_with_uploaded_file, qa_template, number_top_results):
+def query_engine_from_upload(folder_with_uploaded_file, qa_template, number_top_results, selected_llm):
     """
     Build storage context from uploaded documents and return an query_engine.
 
     Args:
         folder_with_uploaded_file (str): Folder with the files uploaded by the user.
         qa_template (f-string): A prompt used to create the query engine.
-        number_top_results (int): Number of top results to return
+        number_top_results (int): Number of top results to return.
+        selected_llm: Large language model used to generate query engine.
 
     Returns:
         query_engine: A query_engine created from the index.
     """
     documents = SimpleDirectoryReader(input_dir=folder_with_uploaded_file).load_data()
-    llm = LLMPredictor(llm=ChatOpenAI(temperature=0, model_name="gpt-3.5-turbo"))
+    # llm = LLMPredictor(llm=ChatOpenAI(temperature=0, model_name="gpt-3.5-turbo"))
+    llm = LLMPredictor(llm=selected_llm)
     service_context = ServiceContext.from_defaults(llm_predictor=llm)
     index = VectorStoreIndex.from_documents(
         documents,
@@ -54,7 +58,7 @@ def query_engine_from_upload(folder_with_uploaded_file, qa_template, number_top_
     return query_engine
 
 
-def response_from_query_engine(query_engine, prompt, use_user_docs, uploaded_file, pdf_dict):
+def response_from_query_engine(query_engine, prompt, use_user_docs, uploaded_file, pdf_dict, selected_llm):
     """
     Return the response from the query engine.
 
@@ -65,6 +69,8 @@ def response_from_query_engine(query_engine, prompt, use_user_docs, uploaded_fil
                               or the query engine created from the user uploaded documents.
         uploaded_file (bool): It defines whether or not the user uploaded files. 
         pdf_dict (dict): Dictionary with the title of the pdf files (our documents).
+        selected_llm: Large language model used to evaluate the response.
+
 
     Returns:
         response_for_user (str): response produced by the LLM.
@@ -73,7 +79,7 @@ def response_from_query_engine(query_engine, prompt, use_user_docs, uploaded_fil
     # Response from llm
     response = query_engine.query(prompt)
     # Evaluate the quality of the response
-    eval_result = eval_response(response)
+    eval_result = eval_response(response, selected_llm)
     # Get response as string
     response_text = response.response
     # If the user uploaded a file and switched to "query_user_engine"
@@ -107,21 +113,22 @@ def response_from_query_engine(query_engine, prompt, use_user_docs, uploaded_fil
     return response_for_user
 
 
-def eval_response(response):
-    llm= LLMPredictor(llm=OpenAI(temperature=0, model_name="gpt-3.5-turbo"))
+def eval_response(response, selected_llm):
+    # llm= LLMPredictor(llm=OpenAI(temperature=0, model_name="gpt-3.5-turbo"))
+    llm= LLMPredictor(llm=selected_llm)
     service_context_eval = ServiceContext.from_defaults(llm_predictor=llm)
     evaluator = ResponseEvaluator(service_context=service_context_eval)
     return evaluator.evaluate(response)
     
 
-def default_chat_engine(folder_with_index, number_top_results):
+def default_chat_engine(folder_with_index, number_top_results, selected_llm):
     """
     Rebuild storage context from a vector database and return a chat engine.
 
-
     Args:
         folder_with_index (str): Folder where the vector database is.
-        number_top_results (int): Number of top results to return
+        number_top_results (int): Number of top results to return.
+        selected_llm: Large language model used to create the chat engine.
 
     Returns:
         query_engine: a query_engine created from the index.
@@ -148,25 +155,28 @@ def default_chat_engine(folder_with_index, number_top_results):
     #     system_prompt=system_prompt
     # ))
     # service_context = ServiceContext.from_defaults(llm_predictor=llm, prompt_helper=prompt_helper)
-    llm = LLMPredictor(llm=ChatOpenAI(temperature=0, model_name="gpt-3.5-turbo"))
+    llm = LLMPredictor(llm=selected_llm)
+    # llm = LLMPredictor(llm=ChatOpenAI(temperature=0, model_name="gpt-3.5-turbo"))
     service_context = ServiceContext.from_defaults(llm_predictor=llm)
     chat_engine = index.as_chat_engine(service_context=service_context, chat_mode="context", similarity_top_k=number_top_results)
     return chat_engine
 
 
-def chat_engine_from_upload(folder_with_uploaded_file, number_top_results):
+def chat_engine_from_upload(folder_with_uploaded_file, number_top_results, selected_llm):
     """
     Build storage context from uploaded documents and return an chat_engine.
 
     Args:
         folder_with_uploaded_file (str): Folder with the files uploaded by the user.
         number_top_results (int): Number of top results to return.
+        selected_llm: Large language model used to create the chat engine.
 
     Returns:
         chat_engine: a chat_engine created from the index.
     """
     documents = SimpleDirectoryReader(input_dir=folder_with_uploaded_file).load_data()
-    llm = LLMPredictor(llm=ChatOpenAI(temperature=0, model_name="gpt-3.5-turbo"))
+    # llm = LLMPredictor(llm=ChatOpenAI(temperature=0, model_name="gpt-3.5-turbo"))
+    llm = LLMPredictor(llm=selected_llm)
     service_context = ServiceContext.from_defaults(llm_predictor=llm)
     index = VectorStoreIndex.from_documents(
         documents,
@@ -176,7 +186,7 @@ def chat_engine_from_upload(folder_with_uploaded_file, number_top_results):
     return chat_engine
 
 
-def response_from_chat_engine(chat_engine, prompt, use_user_docs, uploaded_file, pdf_dict):
+def response_from_chat_engine(chat_engine, prompt, use_user_docs, uploaded_file, pdf_dict, selected_llm):
     """
     Return the response from the chat engine.
 
@@ -187,6 +197,7 @@ def response_from_chat_engine(chat_engine, prompt, use_user_docs, uploaded_file,
                               or the query engine created from the user uploaded documents.
         uploaded_file (bool): It defines whether or not the user uploaded files. 
         pdf_dict (dict): Dictionary with the title of the pdf files (our documents).
+        selected_llm: Large language model used to evaluate the response.
 
     Returns:
         response_for_user (str): response produced by the LLM.
@@ -195,7 +206,7 @@ def response_from_chat_engine(chat_engine, prompt, use_user_docs, uploaded_file,
     # Response from llm
     response = chat_engine.chat(prompt)
     # Evaluate the quality of the response
-    eval_result = eval_response(response)
+    eval_result = eval_response(response, selected_llm)
     # Get response as string
     response_text = response.response
     # If the user uploaded a file and switched to "query_user_engine"

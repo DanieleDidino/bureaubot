@@ -7,6 +7,7 @@ from llama_index import Prompt
 # from PIL import Image
 from streamlit_chat import message
 # from streamlit_extras.app_logo import add_logo
+from langchain.chat_models import ChatOpenAI
 import environ
 import openai
 # import os
@@ -14,20 +15,17 @@ from pathlib import Path
 import pickle 
 
 
-####################################################################################
-# Load query engine
-
-# For now I use my key
+# TODO: For now I use my key, then use the user key 
 env = environ.Env()
 environ.Env.read_env()
 API_KEY = env("OPENAI_API_KEY")
 openai.api_key = API_KEY
 
-# Load dictionary with the title of the pdf files.
-with open(Path("pdf_titles", "pdf_dictionary.pkl"), 'rb') as f:
-    pdf_dict = pickle.load(f)
+####################################################################################
+# Load default query engine and 
 
-folder_user_uploaded_files = "data_streamlit"
+# Set LLm
+selected_llm=ChatOpenAI(temperature=0, model_name="gpt-3.5-turbo")
 
 # Define prompt
 template = (
@@ -44,9 +42,19 @@ number_top_results = 3 # Number of top results to return
 folder_with_index = "vector_db"
 
 ######################################################################################################################################
-query_engine_default = default_engine(folder_with_index, qa_template, number_top_results)
-# query_engine_default = default_chat_engine(folder_with_index, number_top_results)
+query_engine_default = default_engine(folder_with_index, qa_template, number_top_results, selected_llm)
+# query_engine_default = default_chat_engine(folder_with_index, number_top_results, selected_llm)
 ######################################################################################################################################
+
+
+####################################################################################
+# Load files and set folder names
+
+# Load dictionary with the title of the pdf files.
+with open(Path("pdf_titles", "pdf_dictionary.pkl"), 'rb') as f:
+    pdf_dict = pickle.load(f)
+
+folder_user_uploaded_files = "data_streamlit"
 
 ####################################################################################
 # Config streamlit
@@ -145,8 +153,8 @@ if uploaded_file:
 if use_user_docs:
     if uploaded_file:
         ######################################################################################################################################
-        query_engine_user = query_engine_from_upload(folder_user_uploaded_files, qa_template, number_top_results)
-        # query_engine_user = chat_engine_from_upload(folder_user_uploaded_files, number_top_results)
+        query_engine_user = query_engine_from_upload(folder_user_uploaded_files, qa_template, number_top_results, selected_llm)
+        # query_engine_user = chat_engine_from_upload(folder_user_uploaded_files, number_top_results, selected_llm)
         ######################################################################################################################################
         query_engine = query_engine_user
     elif not uploaded_file:
@@ -168,8 +176,8 @@ if prompt := st.chat_input("What is up?"):
     st.session_state.messages.append({"role": "user", "content": prompt})
 
     ######################################################################################################################################
-    response_for_user = response_from_query_engine(query_engine, prompt, use_user_docs, uploaded_file, pdf_dict)
-    # response_for_user = response_from_chat_engine(query_engine, prompt, use_user_docs, uploaded_file, pdf_dict)
+    response_for_user = response_from_query_engine(query_engine, prompt, use_user_docs, uploaded_file, pdf_dict, selected_llm)
+    # response_for_user = response_from_chat_engine(query_engine, prompt, use_user_docs, uploaded_file, pdf_dict, selected_llm)
     ######################################################################################################################################
 
     # Display assistant response in chat message container
