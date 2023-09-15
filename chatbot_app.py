@@ -129,7 +129,6 @@ with sidebar:
         uploaded_file = st.file_uploader("", type=["docx", "doc", "pdf"], accept_multiple_files=True)
         if uploaded_file:
             st.text("File saved successfully!")
-        st.text("File saved successfully!")
     
     # Add space between elements of the column
     st.markdown("<br>", unsafe_allow_html=True)
