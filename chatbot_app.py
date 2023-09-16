@@ -38,7 +38,7 @@ template = (
 )
 qa_template = Prompt(template)
 
-number_top_results = 3 # Number of top results to return
+number_top_results = 5 # Number of top results to return
 folder_with_index = "vector_db"
 
 ######################################################################################################################################
@@ -158,7 +158,7 @@ if use_user_docs:
         query_engine = query_engine_user
     elif not uploaded_file:
         query_engine = query_engine_default
-        st.write("NO UPLOADED FILE")
+        # st.write("NO UPLOADED FILE")
 else:
     query_engine = query_engine_default
 
@@ -168,7 +168,7 @@ for message in st.session_state.messages:
         st.markdown(message["content"], unsafe_allow_html=True)
     
 # React to user input
-if prompt := st.chat_input("What is up?"):
+if prompt := st.chat_input("How may I help you?"):
     # Display user message in chat message container
     st.chat_message("user").markdown(prompt)
     # Add user message to chat history
