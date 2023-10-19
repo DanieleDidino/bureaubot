@@ -5,7 +5,7 @@
 
 Bureau Bot is a document chatbot built using the **Streamlit** framework, the **LlamaIndex** framework, and the **OpenAI API**. Its objective is to help users understand the documents from the *Agentur für Arbeit* by providing them with the information included in the official documents.
 
-![Screenshot](bureau_bot_sScreenshot.png)
+![Screenshot](bureau_bot_screenshot.png)
 
 
 ### Installation
