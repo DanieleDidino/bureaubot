@@ -1,31 +1,41 @@
-from bot_utils import save_uploadedfile, get_filename_from_title
-from bot_utils import default_chat_engine, response_from_chat_engine, chat_engine_from_upload
-from bot_utils import default_engine, query_engine_from_upload, response_from_query_engine
-import streamlit as st
-# from llama_index import StorageContext, load_index_from_storage
-from llama_index import Prompt
-# from PIL import Image
-from streamlit_chat import message
-# from streamlit_extras.app_logo import add_logo
-from langchain.chat_models import ChatOpenAI
-import environ
-import openai
+import pickle
+
 # import os
 from pathlib import Path
-import pickle 
 
+import environ
+import openai
+import streamlit as st
+from bot_utils import (
+    chat_engine_from_upload,
+    default_chat_engine,
+    default_engine,
+    get_filename_from_title,
+    query_engine_from_upload,
+    response_from_chat_engine,
+    response_from_query_engine,
+    save_uploadedfile,
+)
 
-# TODO: For now I use my key, then use the user key 
+# from streamlit_extras.app_logo import add_logo
+from langchain.chat_models import ChatOpenAI
+
+# from llama_index import StorageContext, load_index_from_storage
+from llama_index import Prompt
+
+# from PIL import Image
+from streamlit_chat import message
+from tool_agent import ToolChainAgent
+
+# TODO: For now I use my key, then use the user key
 env = environ.Env()
 environ.Env.read_env()
 API_KEY = env("OPENAI_API_KEY")
 openai.api_key = API_KEY
 
-####################################################################################
-# Load default query engine and 
 
 # Set LLm
-selected_llm=ChatOpenAI(temperature=0, model_name="gpt-3.5-turbo")
+selected_llm = ChatOpenAI(temperature=0, model_name="gpt-3.5-turbo")
 
 # Define prompt
 template = (
@@ -38,25 +48,19 @@ template = (
 )
 qa_template = Prompt(template)
 
-number_top_results = 5 # Number of top results to return
-folder_with_index = "vector_db"
+number_top_results = 5  # Number of top results to return
 
-######################################################################################################################################
-query_engine_default = default_engine(folder_with_index, qa_template, number_top_results, selected_llm)
-# query_engine_default = default_chat_engine(folder_with_index, number_top_results, selected_llm)
-######################################################################################################################################
+query_engine_default = ToolChainAgent()
 
 
-####################################################################################
 # Load files and set folder names
 
 # Load dictionary with the title of the pdf files.
-with open(Path("pdf_titles", "pdf_dictionary.pkl"), 'rb') as f:
+with open(Path("pdf_titles", "pdf_dictionary.pkl"), "rb") as f:
     pdf_dict = pickle.load(f)
 
 folder_user_uploaded_files = "data_streamlit"
 
-####################################################################################
 # Config streamlit
 
 # streamlit config
@@ -69,7 +73,7 @@ st.set_page_config(
         "Report a bug": "https://www.bürohengst.com/bug",
         "About": "# Bürohengst makes german bureaucracy a joy ride. \
         Our robot paper pusher (Chatbot) knows a host of german official \
-        documents (they're in a Vector database) and answer your questions.",
+        documents (they're in a Vector database) and answers your questions about them.",
     },
 )
 
@@ -81,7 +85,7 @@ st.markdown(
     </style> """,
     unsafe_allow_html=True,
 )
-    
+
 # Condense the layout
 padding = 0
 st.markdown(
@@ -99,13 +103,10 @@ st.markdown(
 with open(".streamlit/custom.css") as f:
     st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
-####################################################################################
 # Left column (first part)
-
 sidebar = st.sidebar
 
 with sidebar:
-
     # Custom page title and subtitle
     st.title("Bureau Bot ")
     st.subheader("Ate the official documents", divider="orange")
@@ -114,29 +115,37 @@ with sidebar:
     st.markdown("<br>", unsafe_allow_html=True)
 
     # Get OpenAI ley from user
-    openai_label = "Enter your [OpenAi key](https://platform.openai.com/account/api-keys)"
-    OPENAI_KEY = st.text_input(label=openai_label, type="password", help="Enter your OpenAi key")
+    openai_label = (
+        "Enter your [OpenAi key](https://platform.openai.com/account/api-keys)"
+    )
+    OPENAI_KEY = st.text_input(
+        label=openai_label, type="password", help="Enter your OpenAi key"
+    )
     # openai.api_key = OPENAI_KEY # TODO: Uncomment this lines when we will ask for the user OpenAI Key
-    
+
     # This toggle define whether we use the default query engine (based on our documents) or
     # the query engine created from the user uploaded documents
     toggle_help = 'If "on" the responses are based on the uploaded file(s) only.'
-    use_user_docs = st.toggle('User document(s)', key="my_toggle", help=toggle_help)
-    st.write(f"User context is {use_user_docs}") # TODO: This info is only for us, delete before demo day
-    
+    use_user_docs = st.toggle("User document(s)", key="my_toggle", help=toggle_help)
+    st.write(
+        f"User context is {use_user_docs}"
+    )  # TODO: This info is only for us, delete before demo day
+
     # Expander for file uploading
     with st.expander("Choose a file from your hard drive"):
-        uploaded_file = st.file_uploader("", type=["docx", "doc", "pdf"], accept_multiple_files=True)
+        uploaded_file = st.file_uploader(
+            "", type=["docx", "doc", "pdf"], accept_multiple_files=True
+        )
         if uploaded_file:
             st.text("File saved successfully!")
-    
+
     # Add space between elements of the column
     st.markdown("<br>", unsafe_allow_html=True)
-    
+
     # Initialize list downloadable files
     if "list_file_download" not in st.session_state:
         st.session_state.list_file_download = []
-    
+
     # Initialize chat history
     if "messages" not in st.session_state:
         st.session_state.messages = []
@@ -146,27 +155,26 @@ if uploaded_file:
     for file in uploaded_file:
         save_uploadedfile(file, folder_user_uploaded_files)
 
-####################################################################################
 # Chat
 
+# check if files were uploaded
+default = 1
 if use_user_docs:
     if uploaded_file:
-        ######################################################################################################################################
-        query_engine_user = query_engine_from_upload(folder_user_uploaded_files, qa_template, number_top_results, selected_llm)
-        # query_engine_user = chat_engine_from_upload(folder_user_uploaded_files, number_top_results, selected_llm)
-        ######################################################################################################################################
-        query_engine = query_engine_user
+        upload_engine = query_engine_from_upload(
+            folder_user_uploaded_files, qa_template, number_top_results, selected_llm
+        )
+        default = 0
     elif not uploaded_file:
-        query_engine = query_engine_default
-        # st.write("NO UPLOADED FILE")
+        default = 1
 else:
-    query_engine = query_engine_default
+    default = 1
 
 # Display chat messages from history on app rerun
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"], unsafe_allow_html=True)
-    
+
 # React to user input
 if prompt := st.chat_input("How may I help you?"):
     # Display user message in chat message container
@@ -174,16 +182,21 @@ if prompt := st.chat_input("How may I help you?"):
     # Add user message to chat history
     st.session_state.messages.append({"role": "user", "content": prompt})
 
-    ######################################################################################################################################
-    response_for_user = response_from_query_engine(query_engine, prompt, use_user_docs, uploaded_file, pdf_dict, selected_llm)
-    # response_for_user = response_from_chat_engine(query_engine, prompt, use_user_docs, uploaded_file, pdf_dict, selected_llm)
-    ######################################################################################################################################
+    # choose toolchain or engine from uploads for the chat
+    if default == 1:
+        response_for_user = ToolChainAgent().run(prompt)
+    else:
+        response_for_user = response_from_query_engine(
+            upload_engine, prompt, use_user_docs, uploaded_file, pdf_dict, selected_llm
+        )
 
     # Display assistant response in chat message container
     with st.chat_message("assistant"):
         st.markdown(response_for_user, unsafe_allow_html=True)
     # Add assistant response to chat history
-    st.session_state.messages.append({"role": "assistant", "content": response_for_user})
+    st.session_state.messages.append(
+        {"role": "assistant", "content": response_for_user}
+    )
 
 
 ####################################################################################
@@ -191,7 +204,9 @@ if prompt := st.chat_input("How may I help you?"):
 
 with sidebar:
     # Selectbox with the list of titles used as source
-    selected_file = st.selectbox("Select a source file to download", options=st.session_state.list_file_download)
+    selected_file = st.selectbox(
+        "Select a source file to download", options=st.session_state.list_file_download
+    )
     # Prepare the file for downloading, if a file is selected in the selectbox
     if selected_file:
         # Get the name of the file from the selected title
@@ -206,4 +221,5 @@ with sidebar:
             label="Download",
             data=PDFbyte,
             file_name=file_name_to_download,
-            mime='application/octet-stream')
+            mime="application/octet-stream",
+        )
