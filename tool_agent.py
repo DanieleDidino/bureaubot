@@ -13,8 +13,10 @@ from langchain.utilities import GoogleSearchAPIWrapper
 from langchain.vectorstores import Chroma
 from llama_index import Prompt
 from llama_index.langchain_helpers.agents import IndexToolConfig, LlamaIndexTool
+from langchain.tools import BaseTool
+from langchain.agents import tool
 
-# logging to see what sites and documents the web retriever is using 
+# logging to see what sites and documents the web retriever is using
 logging.basicConfig()
 logging.getLogger("langchain.retrievers.web_research").setLevel(logging.INFO)
 
@@ -30,7 +32,8 @@ llm = ChatOpenAI(temperature=0, model_name="gpt-3.5-turbo")
 
 class EngineTool:
     def __init__(self):
-        qa_template = Prompt(
+        
+        self.qa_template = Prompt(
             "We have provided context information below. \n"
             "---------------------\n"
             "{context_str}"
@@ -40,10 +43,11 @@ class EngineTool:
         )
 
         self.folder_with_index = "vector_db"
-        self.qa_template = qa_template
         self.number_top_results = 5
 
-        self.default_engine = default_engine( self.folder_with_index, self.qa_template, self.number_top_results)
+        self.default_engine = default_engine(
+            self.folder_with_index, self.qa_template, self.number_top_results
+        )
 
         # ERROR: IndexToolConfig awaits an instance of BaseQueryEngine
         self.tool_config = IndexToolConfig(
@@ -58,6 +62,8 @@ class EngineTool:
 
 
 class RetrieverTool:
+    """Tool to find information about work, unemployment, laws and adminstrative infromation in Berlin, Germany"""
+
     def __init__(self):
         # Initialize LLM
         self.llm = llm
@@ -73,13 +79,12 @@ class RetrieverTool:
             llm=self.llm,
             search=search,
         )
-        
+
     def run(self, user_input):
         qa_chain = RetrievalQAWithSourcesChain.from_chain_type(
             self.llm, retriever=self.web_research_retriever
         )
 
-    
         return qa_chain({"question": user_input})
 
 
