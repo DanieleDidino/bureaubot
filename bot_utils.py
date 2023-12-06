@@ -1,24 +1,18 @@
+from llama_index import StorageContext, load_index_from_storage
+# from llama_index import Prompt
+# from llama_index import PromptHelper
+from llama_index import SimpleDirectoryReader
+from llama_index import LLMPredictor, ServiceContext
+from llama_index import VectorStoreIndex
+from llama_index.evaluation import ResponseEvaluator
 # from llama_index.indices.postprocessor import FixedRecencyPostprocessor
 # from llama_index.llms import OpenAI
 # from langchain.chat_models import ChatOpenAI
 import os
-
 import streamlit as st
 
-# from llama_index import Prompt
-# from llama_index import PromptHelper
-from llama_index import (
-    LLMPredictor,
-    ServiceContext,
-    SimpleDirectoryReader,
-    StorageContext,
-    VectorStoreIndex,
-    load_index_from_storage,
-)
-from llama_index.evaluation import ResponseEvaluator
 
-
-def default_engine(folder_with_index, qa_template, number_top_results):
+def default_engine(folder_with_index, qa_template, number_top_results, selected_llm):
     """
     Rebuild storage context from a vector database and return a query engine.
 
@@ -72,7 +66,7 @@ def response_from_query_engine(query_engine, prompt, use_user_docs, uploaded_fil
         query_engine: A query engine.
         prompt (str): Prompt from the user.
         use_user_docs (bool): It defines whether we use the default query engine (based on our documents)
-        or the query engine created from the user uploaded documents.
+                              or the query engine created from the user uploaded documents.
         uploaded_file (bool): It defines whether or not the user uploaded files. 
         pdf_dict (dict): Dictionary with the title of the pdf files (our documents).
         selected_llm: Large language model used to evaluate the response.
@@ -83,8 +77,7 @@ def response_from_query_engine(query_engine, prompt, use_user_docs, uploaded_fil
     """
 
     # Response from llm
-    response = query_engine.run(prompt)
-    
+    response = query_engine.query(prompt)
     # Evaluate the quality of the response
     eval_result = eval_response(response, selected_llm)
     # Get response as string
@@ -97,7 +90,6 @@ def response_from_query_engine(query_engine, prompt, use_user_docs, uploaded_fil
             response_for_user = "Sorry, the context information provided does not mention this information."
         else:
             response_for_user = "Something went wrong, try again!"
-            
     # If we use our "query_engine_default"
     else:
         if eval_result == "YES":
