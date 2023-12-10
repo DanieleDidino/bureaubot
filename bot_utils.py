@@ -137,6 +137,7 @@ def default_chat_engine(folder_with_index, number_top_results, selected_llm):
     storage_context = StorageContext.from_defaults(persist_dir=folder_with_index)
     # load index
     index = load_index_from_storage(storage_context)
+    
     # Configure prompt parameters and initialise helper
     # max_input_size = 4096
     # num_output = 256
