@@ -25,7 +25,8 @@ from llama_index import Prompt
 
 # from PIL import Image
 from streamlit_chat import message
-from tool_agent import ToolChainAgent
+
+from tool_agent import complete_agent_chain
 
 # TODO: For now I use my key, then use the user key
 env = environ.Env()
@@ -49,9 +50,6 @@ template = (
 qa_template = Prompt(template)
 
 number_top_results = 5  # Number of top results to return
-
-query_engine_default = ToolChainAgent()
-
 
 # Load files and set folder names
 
@@ -184,7 +182,7 @@ if prompt := st.chat_input("How may I help you?"):
 
     # choose toolchain or engine from uploads for the chat
     if default == 1:
-        response_for_user = ToolChainAgent().run(prompt)
+        response_for_user = complete_agent_chain(prompt)
     else:
         response_for_user = response_from_query_engine(
             upload_engine, prompt, use_user_docs, uploaded_file, pdf_dict, selected_llm
@@ -197,6 +195,7 @@ if prompt := st.chat_input("How may I help you?"):
     st.session_state.messages.append(
         {"role": "assistant", "content": response_for_user}
     )
+
 
 
 ####################################################################################
