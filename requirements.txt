@@ -1,0 +1,10 @@
+jupyterlab==4.0.7
+llama-index==0.8.47
+langchain==0.0.319
+openai==0.28.1
+pdfminer==20191125
+pypdf==3.16.4
+python-environ==0.4.54
+streamlit==1.27.2
+tiktoken==0.5.1
+unstructured==0.10.24

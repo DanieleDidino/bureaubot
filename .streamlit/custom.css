@@ -1,0 +1,63 @@
+/*colored bar on top of page*/
+div.css-1dp5vir.ezrtsby1 {
+    height: 0.125rem;
+    background-image: linear-gradient(90deg, rgb(255, 189, 69), rgb(223, 5, 5));
+}
+
+/*text next to the toggle switch*/
+div.css-dpla7w p { font-size: 1.2rem; }
+
+/* space in the file uploader*/
+/* label.css-14k6t0v { visibility: hidden; margin-bottom: -2rem; } */
+
+/*hide the 'Drag file' text in the file uploader */
+span.css-9ycgxx.e1b2p2ww12 { display: none; }
+
+/* Drop down header*/
+div.css-xujc5b p { font-size: 1.2rem; }
+
+/*User contextis false????*/
+div.css-uvn0xz p { font-size: 1.2rem; }
+
+/*Select a source file*/
+label.css-x1c7so p {color: rgb(0, 0, 0);}
+
+/*drop down documents*/
+div.st-dg { font-size: 1.05rem; }
+
+/*chat text size*/
+textarea.st-ck { font-size: 1.2rem; }
+
+/*postition of Header and subheader*/
+div.block-container.css-ysnqb2.ea3mdgi4 {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 90%;
+    padding-left: 30px;
+    padding-right: 0px;
+}
+
+/*title*/
+div.css-1629p8f.e1nzilvr2.css-1629p8f h1 {
+    font-family: Georgia;
+    font-size: 2rem;
+    font-weight: 600;
+    padding: 25px 0px 10px 0px;
+    margin: 0px;
+    line-height: 0.5;
+}
+
+/* subtitle*/
+div.css-1629p8f.e1nzilvr2.css-1629p8f h3 {
+    font-family: Georgia;
+    font-size: 1.1rem;
+    font-weight: 600;
+    padding: 0px 0px 10px 0px;
+}
+
+/*move chat to the top*/
+/*div.stChatFloatingInputContainer { position: absolute; top: 0; left: 0; }*/
+
+/* view source code
+div.css-uvn0xz.e1nzilvr5 p {position: absolute; bottom: -200px;} */
