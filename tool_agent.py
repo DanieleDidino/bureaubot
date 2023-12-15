@@ -140,8 +140,16 @@ web_research_retriever_llm_chain = WebResearchRetriever(
 )
 
 def parse_websearch_output(websearch_output):
-    """creates a dictionary of the websearch output that resembles the ouput of
-    the llama index"""
+    '''Creates a dictionary withe the neccessary fields from the websearch output.
+    The created dictionary then resemnbles the aprsed output of the index tool for 
+    so that we can read out the answers of both tools the same way further downstream.
+
+    Args:
+        websearch_output (tuple): (dict{'output_text':...}, list['Doucments':...])
+
+    Returns:
+        dict: {'output_text':..., 'Doucments':{'Document #', {'title': ... , 'content': ... 'source': ...}}
+    '''
     wsearch_dict = {}
     wsearch_dict["output_text"] = websearch_output[0]["output_text"]
     wsearch_dict["Documents"] = {}
