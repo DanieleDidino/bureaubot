@@ -1,7 +1,7 @@
 <h1 align="center">Bureau Bot 🤖</h1>
 
 This branch:
-1. is a copy of the "user_api_key" branch.
+1. is a copy of the `user_api_key` branch.
 2. Integrates the functions/classes from the `websearch` branch.
 3. aims to have a chatbot that uses LangCHain agents to perform RAG or websearch based on the user prompt.
 
