@@ -7,17 +7,17 @@ from typing import List
 import openai
 from dotenv import load_dotenv
 from langchain.agents import AgentType, Tool, initialize_agent
-from langchain.chains import LLMChain, RetrievalQAWithSourcesChain
+from langchain.chains import LLMChain
 from langchain.chains.conversation.memory import ConversationBufferMemory
 from langchain.chains.question_answering import load_qa_chain
 from langchain.chat_models import ChatOpenAI
-from langchain.chat_models.openai import ChatOpenAI
 from langchain.embeddings import OpenAIEmbeddings
 from langchain.output_parsers.pydantic import PydanticOutputParser
 from langchain.prompts import PromptTemplate
 from langchain.retrievers.web_research import WebResearchRetriever
 from langchain.utilities import GoogleSearchAPIWrapper
-from langchain.vectorstores import Chroma
+from langchain_community.chat_models import ChatOpenAI
+from langchain_community.vectorstores import Chroma
 from llama_index import Prompt, StorageContext, load_index_from_storage
 from pydantic import BaseModel, Field
 
